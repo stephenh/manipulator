@@ -1,5 +1,11 @@
 package manipulator.types;
 
+import org.antlr.v4.runtime.ANTLRFileStream;
+import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.TokenStreamRewriter;
+import org.antlr.v4.runtime.tree.ParseTreeWalker;
+import org.apache.commons.lang3.StringUtils;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Map;
@@ -11,12 +17,6 @@ import manipulator.antlr.JavaParser;
 import manipulator.antlr.JavaParser.FormalParameterContext;
 import manipulator.antlr.JavaParser.FormalParametersContext;
 import manipulator.antlr.JavaParser.InterfaceMethodDeclarationContext;
-
-import org.antlr.v4.runtime.ANTLRFileStream;
-import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.TokenStreamRewriter;
-import org.antlr.v4.runtime.tree.ParseTreeWalker;
-import org.apache.commons.lang3.StringUtils;
 
 public class EvaluatedType {
 	public final String filePath;
@@ -33,11 +33,7 @@ public class EvaluatedType {
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
-
 		this.parseTypeFile();
-		/*
-		 * for (String signature : this.interfaceMethodContexts.keySet()) { System.out.println(signature); }
-		 */
 	}
 
 	private void parseTypeFile() {
@@ -79,11 +75,11 @@ public class EvaluatedType {
 		for (Map.Entry<String, InterfaceMethodDeclarationContext> interfaceMethod : this.interfaceMethodContexts.entrySet()) {
 			InterfaceMethodDeclarationContext imdc = interfaceMethod.getValue();
 			String friendlyMethodDescriptor = interfaceMethod.getKey();
+      String concreteName = simpleName.replaceAll("^Is", "");
 			StringBuilder javadoc = new StringBuilder();
 			javadoc.append("/**\n");
-			javadoc.append("\t* @see SomeTypeHere.");
-			javadoc.append(friendlyMethodDescriptor);
-			javadoc.append("\n\t*/\n\t");
+      javadoc.append("   * See {@link " + concreteName + "#" + friendlyMethodDescriptor + "}.\n");
+      javadoc.append("   */\n  ");
 			rewriter.insertBefore(imdc.parent.parent.getSourceInterval().a, javadoc.toString());
 		}
 		return rewriter.getText();
